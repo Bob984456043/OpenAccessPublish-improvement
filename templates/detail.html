@@ -197,8 +197,10 @@
                     <input type="text" name="cap" class="form-control" id="cap">
                     <img src="/static/captcha/{{ captcha }}.jpg" alt="captcha" ans="{{ captcha }}" id="capimg">
                 </div>
-                <input class="btn btn-primary" id="submit" name="submit" type="submit" value="Submit"
-                       onclick="return checkcap()">
+{#                <input class="btn btn-primary" id="submit" name="submit" type="submit" value="Submit"#}
+{#                       onclick="return checkcap()">#}
+                {{ form.submit }}
+
             </form>
         </div>
     </main>

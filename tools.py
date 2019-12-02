@@ -1,5 +1,5 @@
 from routes import *
-
+from app import db,app
 
 class Table:
     def __init__(self):

@@ -109,7 +109,7 @@ class Article(db.Model):
         return re.sub("\\S{1,3}@\\S+", '**@**', self.email)
 
     def getB64Email(self):
-        return base64.b64encode(self.email)
+        return base64.b64encode((self.email).encode())
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(50))

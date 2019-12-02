@@ -32,5 +32,6 @@ def getCaptcha():
     for t in range(4):
         draw.text((30 * t + 10, 5), str[t], font=font, fill=rndColor2())
     savename=os.path.join(app.root_path, "static","captcha", str+".jpg")
+    print(savename)
     image.save(savename, 'jpeg')
     return str

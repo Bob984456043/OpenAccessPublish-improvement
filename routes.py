@@ -10,9 +10,10 @@ import os
 from threading import Thread
 from tools import *
 
-
 def sendEmailBackground(msg):
-    mail.send(msg)
+    #待解决（目前只知道用app.app_context()可解决flask线程问题）
+    with app.app_context():#新添加的代码
+        mail.send(msg)
 
 
 def sendEmail(msg):
@@ -154,7 +155,6 @@ def publish():
                 article.pdf = str(article.id) + '.pdf'
                 filename = os.path.join(app.root_path, "static", "pdf", article.id + '.pdf')
                 form.file.data.save(filename)
-                db.session.add(article)
 
                 # if a subject is not exist, then create it
                 sub = Subject.query.filter_by(name=article.subject).first()
@@ -164,7 +164,10 @@ def publish():
                     sub.super_subject = 0
                     sub.depth = 0
                     db.session.add(sub)
+                # article.subject=None
+                db.session.commit()
 
+                db.session.add(article)
                 # generate a record and add it
                 record = IpRecord()
                 record.ip = request.remote_addr
@@ -178,7 +181,7 @@ def publish():
                 # send email
                 email_msg = Message(recipients=[form.email.data], subject='[OPEN ACCESS PUBLISH]Publish notification')
                 email_msg.body = 'CLICK HERE TO VALIDATE'
-                email_msg.html = "<h1>Notification</h1><p>You have published an <a href='http://jinmingyi.xin:8080/detail/%s'>article</a></p>" % (
+                email_msg.html = "<h1>Notification</h1><p>You have published an <a href='http://139.199.58.80:5000/detail/%s'>article</a></p>" % (
                     str(
                         article.id))
                 sendEmail(email_msg)
@@ -239,7 +242,7 @@ def detail(article_id):
                     # email actions
                     email_msg = Message(recipients=[e.email], subject="Notification")
                     email_msg.html = """<h1>Notication</h1><p>Your email has made a comment 
-                    on <a href='http://jinmingyi.xin:8080/detail/%s'>website</a></p>""" % str(article_id)
+                    on <a href='http://139.199.58.80:5000/detail/%s'>website</a></p>""" % str(article_id)
                     sendEmail(email_msg)
 
                     return redirect('/detail/' + str(article_id))
@@ -344,7 +347,7 @@ def email_validate(statu, recieve_email=None):
                 e.generate_password()
                 email_msg = Message(recipients=[recieve_email], subject='OPEN ACCESS PUBLISH validation ')
                 email_msg.body = 'CLICK HERE TO VALIDATE'
-                email_msg.html = "<h1>Activation</h1><p><a href='http://jinmingyi.xin:8080/captcha/%s'>Click to activate</a></p>" % e.password
+                email_msg.html = "<h1>Activation</h1><p><a href='http://139.199.58.80:5000/captcha/%s'>Click to activate</a></p>" % e.password
                 sendEmail(email_msg)
                 e.validate_time = datetime.datetime.now()
                 db.session.add(e)
@@ -359,7 +362,7 @@ def email_validate(statu, recieve_email=None):
                 if not e.is_validated():
                     email_msg = Message(recipients=[recieve_email], subject='OPEN ACCESS PUBLISH validation ')
                     email_msg.body = 'CLICK HERE TO VALIDATE'
-                    email_msg.html = "<h1>Activation</h1><p><a href='http://jinmingyi.xin:8080/captcha/%s'>Click to activate</a></p>" % e.password
+                    email_msg.html = "<h1>Activation</h1><p><a href='http://139.199.58.80:5000/captcha/%s'>Click to activate</a></p>" % e.password
                     sendEmail(email_msg)
                     return "We've already send you an validation email"
             abort(404)
@@ -388,15 +391,15 @@ def checkCaptcha():
     abort(400)
 
 
-@app.before_request
-def ip_filter():
-    online=request.cookies.get('online')
-    if online!=1:
-        return redirect('/')
-    ip = request.remote_addr
-    if BadUser.query.filter_by(ip=ip).count() > 0:
-        abort(403)
-    return
+# @app.before_request
+# def ip_filter():
+#     online=request.cookies.get('online')
+#     if online!=1:
+#         return redirect('/')
+#     ip = request.remote_addr
+#     if BadUser.query.filter_by(ip=ip).count() > 0:
+#         abort(403)
+#     return
 
 
 @app.route('/author')
