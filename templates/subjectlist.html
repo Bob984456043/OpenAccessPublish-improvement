@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="jumbotron container">
+    <h1>Subjects</h1>
+    </div>
+    <div class="container">
+    <div class="list-group">
+        {% for a in articles %}
+            <a href="/detail/{{ a.id }}" class="list-group-item list-group-item-action">
+                {{ a.title }}</a>
+        {% endfor %}
+    </div>
+    </div>
+{% endblock %}

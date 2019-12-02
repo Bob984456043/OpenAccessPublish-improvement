@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block htmlhead %}
+    <link rel="stylesheet" href="/static/editor/css/editormd.min.css">
+    <link rel="stylesheet" href="/static/editor/css/">
+    <script src="/static/js/jquery-3.3.1.min.js"></script>
+    <script src="/static/editor/editormd.min.js"></script>
+    <script src="/static/js/markdown.min.js"></script>
+    <script type="text/javascript">
+        function checkcap() {
+            if ($("input#cap").val() == $("img#capimg").attr('ans')) {
+                console.log("yes");
+                return true;
+            }
+            console.log("no")
+            return false;
+        }
+        $(function () {
+            $('img#capimg').click(function () {
+                $.post("/captcha",
+                    {
+                        que: $("input#cap").val(),
+                        ans: $("img#capimg").attr("ans")
+                    }, function (data, status) {
+                        if (status == "success")
+                            $('img#capimg').attr({
+                                'ans': data,
+                                'src': '/static/captcha/' + data + '.jpg'
+                            });
+                    });
+            });
+            /* editormd */
+            var editor = editormd({
+                id: "editormd",
+                path: "/static/editor/lib/",
+                height: 300,
+                codeFold: true,
+                saveHTMLToTextarea: true,
+                searchReplace: true,
+                emoji: true,
+                taskList: true,
+                tocm: false,
+                tex: false,
+                autoFocus:false,
+                flowChart: true,
+                sequenceDiagram: true
+            });
+            /* import mathjax */
+            $('.md-fa').each(function () {
+                var res = markdown.toHTML($(this).text());
+                $(this).html(res);
+            })
+            /* vote */
+            $('img.vote').click(function () {
+                var str = $(this).attr("name");
+                console.log(str);
+                var ty = $(this).attr("votetype");
+                var tid = $(this).attr("voteid");
+                var tt = $(this).attr("votetarget")
+                var url = "/vote/" + tt + "/" + ty + "/" + tid;
+                var tmp = $(this).siblings("img.vote").attr('name');
+                if (tmp.search("1") == -1 && str.search("1") >= 0) {
+                    alert("You have voted!");
+                    return;
+                }
+                console.log(url)
+                $.post(url, {},
+                    function (data, status) {
+                        if (status == "success") {
+                            $("span.vote[votetarget='" + tt + "'][votetype='" + ty + "'][voteid='" + tid + "']").text(data);
+                            var url = "/ckvote/" + tt + "/" + ty + "/" + tid;
+                            $.post(url, {},
+                                function (data, status) {
+                                    if (status == "success") {
+                                        if (data == "1") {
+                                            str = ty;
+                                        } else {
+                                            str = ty + "1";
+                                        }
+                                        $("img.vote[votetarget='" + tt + "'][votetype='" + ty + "'][voteid='" + tid + "']").attr({
+                                            "src": "/static/icon/" + str,
+                                            "name": str
+                                        });
+                                    }
+                                }
+                            );
+                        }
+                    }
+                );
+            });
+            $('img.vote').each(function () {
+                var str = $(this).attr("name");
+                var ty = $(this).attr("votetype");
+                var tid = $(this).attr("voteid");
+                var tt = $(this).attr("votetarget");
+                var url = "/ckvote/" + tt + "/" + ty + "/" + tid;
+                $.post(url, {},
+                    function (data, status) {
+                        if (status == "success") {
+                            if (data == "1") {
+                                str = str.substring(0, str.length - 1);
+                                $("img.vote[votetarget='" + tt + "'][votetype='" + ty + "'][voteid='" + tid + "']").attr({
+                                    "src": "/static/icon/" + str,
+                                    "name": str
+                                });
+                            }
+                        }
+                    }
+                );
+            });
+        });
+    </script>
+    <style>
+        .vote {
+            max-height: 2rem;
+            padding: 0px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <main class="container">
+        <div class=" container card">
+            <div class="card-header">
+                <h1 class="cart-title">{{ article.title }}</h1>
+                <div class="float-right">
+                    <span>Visit:{{ article.visit }}</span>
+                    <img src="/static/icon/down1" alt="Vote-down" id="votedown"
+                         class="img-responsive vote" name="down1"
+                         votetype="down" votetarget="article"
+                         voteid="{{ article.id }}">
+                    <span class="vote text-muted" votetype="down" votetarget="article"
+                          voteid="{{ article.id }}">{{ article.votedown }}</span>
+
+                    <img src="/static/icon/up1" alt="Vote-up" id="voteup"
+                         class="img-responsive vote" name="up1"
+                         votetype="up" votetarget="article"
+                         voteid="{{ article.id }}">
+                    <span class="vote text-muted" votetype="up" votetarget="article"
+                          voteid="{{ article.id }}">{{ article.voteup }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text"><b>Author:</b>{{ article.author }}</p>
+                <p class="card-text"><b>Email:</b><a href="{{ url_for('authorpage') }}?email={{ article.getB64Email() }}">{{ article.getEmail() }}</a></p>
+                <p class="card-text"><b>Subject:</b><a href="{{ url_for('subject_list') }}?subject={{ article.subject }}">{{ article.subject }}</a></p>
+                <p class="card-text"><b>Date:</b>{{ article.date.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p class="card-text"><b>Highlight:</b>{{ article.highlight }}</p>
+                <a href="/download/{{ article.pdf }}" class="card-link">Download</a>
+            </div>
+        </div>
+        <hr>
+        <div class="container">
+            <h3>Comments:</h3>
+            <ul class="list-group">
+                {% for comment in comments %}
+                    <li class="list-group-item">
+                        <div class="card ">
+                            <div class="card-title card-header font-weight-bold"><a
+                                    href="{{ url_for('authorpage') }}?email={{ comment.email }}">{{ comment.getEmail() }}</a></div>
+                            <div class="card-body card-text">
+                                <div class="md-fa">{{ comment.content }}</div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="float-left">
+                                    <img src="/static/icon/down1" alt="Vote-down" id="votedown"
+                                         class="img-responsive vote" name="down1"
+                                         votetype="down" votetarget="comment"
+                                         voteid="{{ comment.id }}">
+                                    <span class="vote text-muted" votetype="down" votetarget="comment"
+                                          voteid="{{ comment.id }}">{{ comment.votedown }}</span>
+                                    <img src="/static/icon/up1" alt="Vote-up" id="voteup"
+                                         class="img-responsive vote" name="up1"
+                                         votetype="up" votetarget="comment"
+                                         voteid="{{ comment.id }}">
+                                    <span class="vote text-muted" votetype="up" votetarget="comment"
+                                          voteid="{{ comment.id }}">{{ comment.voteup }}</span>
+                                </div>
+                                <div class="text-muted text-sm-right">
+                                    {{ comment.date.strftime('%Y-%m-%d %H:%M') }}
+                                </div>
+                            </div>
+                        </div>
+
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <hr>
+        <div class="container">
+            <form action="" method="post">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    Email(You should <a href="/validator/activate">activate</a> your email beform you comment)
+                    {{ form.email(class='form-control') }}
+                </div>
+                <div id="editormd" class="form-group">{{ form.comment }}</div>
+                <div class="form-group">
+                    <input type="text" name="cap" class="form-control" id="cap">
+                    <img src="/static/captcha/{{ captcha }}.jpg" alt="captcha" ans="{{ captcha }}" id="capimg">
+                </div>
+                <input class="btn btn-primary" id="submit" name="submit" type="submit" value="Submit"
+                       onclick="return checkcap()">
+            </form>
+        </div>
+    </main>
+
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container">
+        <ul class="list-group">
+            <div class="container card">
+                <div class="card-header-tabs"><h2 class="card-title text-center">Search</h2></div>
+                {{ form.hidden_tag() }}
+                <form action="" method="post" class="card-body card-text">
+                    <div class="form-inline">{{ form.content.label }}{{ form.content }}</div>
+                    <div class="form-group">{{ form.submit }}</div>
+                </form>
+            </div>
+        <div class="container"><h2>Related Articles</h2></div>
+            {% for a in list %}
+                <li class="container card">
+                    <div class="card-body">
+                        <a href="detail/{{ a.id }}"><h2
+                                class="card-title text-center font-weight-bold">{{ a.title }}</h2></a>
+                        <dl class="card-text">
+                            <dt>Author:</dt>
+                            <dd>{{ a.author }}</dd>
+                            <dt>Date:</dt>
+                            <dd>{{ a.date.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                            <dt>Highlight:</dt>
+                            <dd>
+                                <p class="blockquote">{{ a.highlight }}</p>
+                            </dd>
+                        </dl>
+                        <a href="/download/{{ a.pdf }}" class="card-link">Download</a></div>
+                </li>
+            {% endfor %}
+        <div class="container"><h2>Related Comments</h2></div>
+        {% for a in commentlist %}
+                <li class="container card">
+                    <div class="card-body">
+                        <a href="detail/{{ a.target }}">{{ a.content }}</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

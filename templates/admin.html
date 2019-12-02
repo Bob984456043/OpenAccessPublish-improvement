@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container">
+        <a href="/admin/articles" class="btn btn-info btn-sm">Articles</a>
+        <a href="/admin/comments" class="btn btn-info btn-sm">Comments</a>
+        <a href="/admin/badword" class="btn btn-info btn-sm">Bad Word</a>
+        <a href="/admin/subject/add" class="btn btn-info btn-sm">Add subject</a>
+        <button onclick="$.get('/admin/captcha',function() {alert('successed');})" class="btn btn-sm">Clear Captcha
+        </button>
+    </div>
+    <main class="container">
+        {% if form %}
+            {% if form.formname=="subject" %}
+                <form action="" method="post">
+                    {{ form.hidden_tag() }}
+                    <p>{{ form.name.label }}
+                        {{ form.name }}
+                    </p>
+                    <p>{{ form.father.label }}{{ form.father }}</p>
+                    <p>{{ form.depth.label }}{{ form.depth }}</p>
+                    {{ form.submit }}
+                </form>
+            {% endif %}
+        {% endif %}
+        {% if table %}
+            <table class="table table-responsive-xl table-bordered table-hover">
+                <thead>
+                <tr>
+                    {% for th in table.thead %}
+                        <th>{{ th }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for r in table.items %}
+                    <tr>
+                        {% for d in r %}
+                            <td>{{ d }}</td>
+                        {% endfor %}
+                        <td>
+                            <button class="btn-sm btn-danger"
+                                    onclick="remove({{ r[0] }},'{{ table.name }}')">
+                                remove
+                            </button>
+                        </td>
+                        {% if table.name=='article' %}
+                            <td>
+                                <button class="btn-sm btn-info"
+                                        onclick="hidearticle({{ r[0] }},'{{ table.name }}')">
+                                    hide
+                                </button>
+                            </td>
+                            <td>
+                                <button class="btn-sm btn-info"
+                                        onclick="showarticle({{ r[0] }},'{{ table.name }}')">
+                                    show
+                                </button>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </main>
+    <script>
+        function remove(id, type) {
+            $.get({
+                url: "/admin/delete/" + id + "/" + type,
+                success: function () {
+                    alert("Delete " + type + " : id = " + id);
+                    window.location.reload();
+                }
+            })
+        }
+
+        function hidearticle(id, type) {
+            $.get({
+                url: "/admin/hide/" + id + "/" + type,
+                success: function () {
+                    alert("Hide " + type + " : id = " + id);
+                    window.location.reload();
+                }
+            })
+        }
+
+        function showarticle(id, type) {
+            $.get({
+                url: "/admin/show/" + id + "/" + type,
+                success: function () {
+                    alert("Hide " + type + " : id = " + id);
+                    window.location.reload();
+                }
+            })
+        }
+    </script>
+{% endblock %}

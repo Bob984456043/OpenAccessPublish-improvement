@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block htmlhead %}
+    <script>
+        function checkcap() {
+            return $("input#cap").val() == $("img#capimg").attr('ans');
+        }
+        $(function () {
+            $('img#capimg').click(function () {
+                $.post("{{ url_for('checkCaptcha') }}",
+                    {
+                        que: $("input#cap").val(),
+                        ans: $("img#capimg").attr("ans")
+                    }, function (data, status) {
+                        if (status == "success")
+                            $('img#capimg').attr({
+                                'ans': data,
+                                'src': '/static/captcha/' + data + '.jpg'
+                            });
+                    });
+            });
+        });
+    </script>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="alert alert-info">{{ message }}</div>
+        <form action="" method="post" enctype="multipart/form-data" id="article">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.title.label }}
+                {{ form.title(class='form-control') }}
+            </div>
+            <div class="form-group">
+                {{ form.author.label }}
+                {{ form.author(class='form-control') }}
+            </div>
+            <div class="form-group">
+                {{ form.highlight.label }}
+                {{ form.highlight(class='form-control') }}
+            </div>
+            <div class="form-group">
+                {{ form.subject.label }}
+                {{ form.subject(class='form-control') }}
+            </div>
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class='form-control') }}
+            </div>
+
+            <div class="form-group">
+                {{ form.file(class='form-control') }}
+            </div>
+            <div class="form-group">
+                <input type="text" name="cap" class="form-control" id="cap">
+                <img src="/static/captcha/{{ captcha }}.jpg" alt="captcha" ans="{{ captcha }}" id="capimg">
+            </div>
+            <input class="btn btn-primary" id="submit" name="submit" type="submit" value="Submit"
+                   onclick="return checkcap()">
+        </form>
+    </div>
+{% endblock %}

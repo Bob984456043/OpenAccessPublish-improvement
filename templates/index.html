@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block htmlhead %}
+    <style>
+    body{
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+    </style>
+{% endblock %}
+{% block content %}
+
+    <div class="container">
+        <div class="jumbotron">
+            <h1 class="text-center">{{ title }}</h1>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-3">
+                <h1>Subjects:</h1>
+                <div class="list-group">
+                    {% for s1 in subjects %}
+                        <a class="list-group-item list-group-item-action list-group-item-primary"
+                           href="{{ url_for('subject_list') }}?subject={{ s1.name }}"><h3>{{ s1.name }}</h3></a>
+                        {% for s2 in s1.children %}
+                            <a class="list-group-item list-group-item-action list-group-item-success"
+                               href="{{ url_for('subject_list') }}?subject={{ s2.name }}"><h4>{{ s2.name }}</h4></a>
+                            {% for s3 in s2.children %}
+                                <a class="list-group-item list-group-item-action list-group-item-warning"
+                                   href="{{ url_for('subject_list') }}?subject={{ s3.name }}"><h5>{{ s3.name }}</h5></a>
+                            {% endfor %}
+                        {% endfor %}
+                        <hr>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-9">
+                <div class="card">
+                    <div class="card-title"><h2>Recomended articles</h2></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for a in articles %}
+                                <li class="list-group-item">
+                                    <h3><a class="card-link" href="/detail/{{ a.id }}">{{ a.title }}</a></h3>
+                                    <p class="card-text">{{ a.author }}</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
